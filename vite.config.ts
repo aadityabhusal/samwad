@@ -23,7 +23,31 @@ export default defineConfig({
         short_name: "Samwad",
         description:
           "Samwad helps you learn English through natural voice conversations with an AI that listens and responds like a real teacher. Practice speaking anytime, anywhere without fear of making mistakes or being judged. Master a new language by actually using it in everyday situations, all at your own pace.",
-        theme_color: "#ffffff",
+        theme_color: "#FB6D03",
+        background_color: "#FB6D03",
+        icons: [
+          {
+            src: "pwa-64x64.png",
+            sizes: "64x64",
+            type: "image/png",
+          },
+          {
+            src: "pwa-192x192.png",
+            sizes: "192x192",
+            type: "image/png",
+          },
+          {
+            src: "pwa-512x512.png",
+            sizes: "512x512",
+            type: "image/png",
+          },
+          {
+            src: "maskable-icon-512x512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "maskable",
+          },
+        ],
       },
 
       workbox: {
