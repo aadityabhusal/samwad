@@ -29,14 +29,16 @@ export const useUiConfigStore = create(
 type SetAiState = Partial<Omit<IAiStateStore, "setAiState">>;
 type IAiStateStore = {
   isConnected?: boolean;
-  volume: number;
+  aiVolume: number;
+  userVolume: number;
   setAiState: (
     change: SetAiState | ((change: SetAiState) => SetAiState)
   ) => void;
 };
 
 export const useAiStateStore = create<IAiStateStore>((set) => ({
-  volume: 0,
+  aiVolume: 0,
+  userVolume: 0,
   setAiState: (change) =>
     set((state) => (typeof change === "function" ? change(state) : change)),
 }));

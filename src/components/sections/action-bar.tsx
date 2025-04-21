@@ -1,12 +1,5 @@
-import {
-  Settings2Icon,
-  Loader2,
-  MicIcon,
-  PauseIcon,
-  XIcon,
-} from "lucide-react";
+import { Settings2Icon, XIcon } from "lucide-react";
 import { SETTINGS } from "@/lib/data";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -25,6 +18,7 @@ import {
 import useAiAssistant from "@/lib/hooks/use-ai-assistant";
 import { useAiStateStore, useUiConfigStore } from "@/lib/store";
 import { useShallow } from "zustand/shallow";
+import { UserMic } from "../ui/user-mic";
 
 export function ActionBar() {
   const { setUiConfig, ...uiConfig } = useUiConfigStore(
@@ -101,25 +95,15 @@ export function ActionBar() {
           </DropdownMenuContent>
         </DropdownMenu>
       )}
-      <Button
-        variant={isConnected ? "secondary" : "outline"}
-        size={"lg"}
-        className={cn("size-16 rounded-full [&_svg]:!size-8")}
-        onClick={() => {
-          if (isRecording) pauseRecording();
-          else if (isConnected) resumeRecording();
-          else startSession();
-        }}
+      <UserMic
         disabled={!uiConfig.api_key}
-        children={
-          isLoading ? (
-            <Loader2 className="animate-spin" />
-          ) : isRecording ? (
-            <PauseIcon />
-          ) : (
-            <MicIcon />
-          )
-        }
+        isLoading={isLoading}
+        isRecording={isRecording}
+        onClick={async () => {
+          if (isRecording) pauseRecording();
+          else if (isConnected) await resumeRecording();
+          else await startSession();
+        }}
       />
     </div>
   );

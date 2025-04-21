@@ -7,7 +7,7 @@ const MIN_HEIGHT = 16; // Minimum height of each line
 const MAX_HEIGHT = 400; // Maximum height of each line
 
 export function AudioPulse() {
-  const volume = useAiStateStore((s) => s.volume);
+  const volume = useAiStateStore((s) => s.aiVolume);
   const lines = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {

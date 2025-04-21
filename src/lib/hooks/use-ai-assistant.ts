@@ -34,7 +34,7 @@ function useAiAssistant(props: Omit<IUiConfig, "theme">) {
         "vumeter-out",
         VolMeterWorket,
         (e: any) => {
-          setAiState({ volume: e.data.volume });
+          setAiState({ aiVolume: e.data.volume });
         }
       );
       await audioContextRef.current.resume();
@@ -73,7 +73,9 @@ function useAiAssistant(props: Omit<IUiConfig, "theme">) {
   const stopSession = useCallback(() => {
     audioRecorderRef.current?.stop();
     audioStreamerRef.current?.stop();
-    audioRecorderRef.current?.off("data");
+    audioRecorderRef.current
+      ?.off("data", onAudioRecorderData)
+      .off("volume", (userVolume) => setAiState({ userVolume }));
     log("Recording stopped.");
     setIsRecording(false);
     setIsLoading(false);
@@ -110,7 +112,7 @@ function useAiAssistant(props: Omit<IUiConfig, "theme">) {
             onInterrupted: () => {
               log("Interrupted");
               audioStreamerRef.current?.stop();
-              setAiState({ volume: 0 });
+              setAiState({ aiVolume: 0 });
             },
             onTurnComplete: () => {
               log("Finished speaking");
@@ -135,9 +137,10 @@ function useAiAssistant(props: Omit<IUiConfig, "theme">) {
       // Set up audio recorder
       const recorder = new AudioRecorder();
       audioRecorderRef.current = recorder;
-
-      await recorder.start();
-      recorder.on("data", onAudioRecorderData);
+      await recorder
+        .on("data", onAudioRecorderData)
+        .on("volume", (userVolume) => setAiState({ userVolume }))
+        .start();
       setIsRecording(true);
       log("Recording started...");
     } catch (error) {
@@ -163,8 +166,11 @@ function useAiAssistant(props: Omit<IUiConfig, "theme">) {
   return {
     startSession,
     stopSession,
-    resumeRecording: () => {
-      audioRecorderRef.current?.on("data", onAudioRecorderData).start();
+    resumeRecording: async () => {
+      await audioRecorderRef.current
+        ?.on("data", onAudioRecorderData)
+        .on("volume", (userVolume) => setAiState({ userVolume }))
+        .start();
       setIsRecording(true);
     },
     pauseRecording: () => {
