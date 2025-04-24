@@ -12,10 +12,11 @@ export type IUiConfig = {
   learn_language: string;
   api_key: string;
   theme?: "light" | "dark";
+  lastGreeted?: Date;
 };
 
 export type ISettings = {
-  value: keyof Omit<IUiConfig, "api_key" | "theme">;
+  value: keyof Omit<IUiConfig, "api_key" | "theme" | "lastGreeted">;
   label: string;
   menu: { value: string; label: string }[];
   disabled?: boolean;
@@ -39,4 +40,13 @@ export interface IPracticeSession {
   createdAt: Date;
   updatedAt?: Date;
   language: string;
+}
+
+export interface BeforeInstallPromptEvent extends Event {
+  readonly platforms: string[];
+  readonly userChoice: Promise<{
+    outcome: "accepted" | "dismissed";
+    platform: string;
+  }>;
+  prompt(): Promise<void>;
 }

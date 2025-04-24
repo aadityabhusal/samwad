@@ -2,6 +2,8 @@ import { getSystemPrompt } from "@/lib/utils";
 import { LiveConnectConfig, LiveServerMessage } from "@google/genai";
 import { ISettings, IUiConfig } from "./types";
 import { AudioTranscription } from "@/lib/audio-transcription";
+import { useUiConfigStore } from "./store";
+import dayjs from "dayjs";
 
 export type GeminiLiveHandlers = {
   onSetupComplete: () => void;
@@ -72,13 +74,24 @@ export class GeminiLiveAPI {
 
         if (response.setupComplete) {
           this.onSetupComplete();
+          const lastGreeted = useUiConfigStore.getState().lastGreeted;
+          const shouldGreet = lastGreeted
+            ? dayjs().diff(lastGreeted, "day") >= 1
+            : true;
+          const message = shouldGreet ? "Greet the user and " : "";
           this.sendMessage({
             client_content: {
               turns: [
-                { role: "user", parts: [{ text: "Start with a greeting." }] },
+                {
+                  role: "user",
+                  parts: [{ text: message + "Start with the first question." }],
+                },
               ],
               turn_complete: true,
             },
+          });
+          useUiConfigStore.getState().setUiConfig({
+            lastGreeted: dayjs().startOf("day").toDate(),
           });
         } else if (response.serverContent) {
           if (response.serverContent.interrupted) {

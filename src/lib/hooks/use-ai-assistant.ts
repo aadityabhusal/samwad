@@ -12,6 +12,7 @@ function useAiAssistant(props: Omit<IUiConfig, "theme">) {
   const audioStreamerRef = useRef<AudioStreamer | null>(null);
   const audioRecorderRef = useRef<AudioRecorder | null>(null);
   const providerRef = useRef<GeminiLiveAPI | null>(null);
+  const wakeLockRef = useRef<WakeLockSentinel>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const setAiState = useAiStateStore((s) => s.setAiState);
@@ -22,6 +23,19 @@ function useAiAssistant(props: Omit<IUiConfig, "theme">) {
     if (import.meta.env.PROD) return;
     console.log(...message);
   }, []);
+
+  const handleSetupComplete = useCallback(async () => {
+    try {
+      setIsLoading(false);
+      setAiState({ isConnected: true, firstSessionStarted: true });
+      if ("vibrate" in window.navigator) window.navigator.vibrate(50);
+      if ("wakeLock" in window.navigator) {
+        wakeLockRef.current = await navigator.wakeLock.request();
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, [setAiState]);
 
   // Ensure that the audio context and streamer are initialized.
   const ensureAudioInitialized = useCallback(async (): Promise<void> => {
@@ -85,6 +99,9 @@ function useAiAssistant(props: Omit<IUiConfig, "theme">) {
       providerRef.current.disconnect();
     }
     if ("vibrate" in window.navigator) window.navigator.vibrate(50);
+    wakeLockRef.current?.release().then(() => {
+      wakeLockRef.current = null;
+    });
   }, [setAiState, log]);
 
   const startSession = useCallback(async () => {
@@ -100,11 +117,9 @@ function useAiAssistant(props: Omit<IUiConfig, "theme">) {
 
         // Initialize the API.
         providerRef.current = new GeminiLiveAPI(props, {
-          onSetupComplete: () => {
+          onSetupComplete: async () => {
             log("Setup complete");
-            setIsLoading(false);
-            setAiState({ isConnected: true, firstSessionStarted: true });
-            if ("vibrate" in window.navigator) window.navigator.vibrate(50);
+            await handleSetupComplete();
           },
           onAudioData: async (audioData) => {
             log("Speaking...");
@@ -159,6 +174,7 @@ function useAiAssistant(props: Omit<IUiConfig, "theme">) {
     stopSession,
     setAiState,
     addQuestion,
+    handleSetupComplete,
   ]);
 
   function onAudioRecorderData(base64Data: string) {
