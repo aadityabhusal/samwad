@@ -1,10 +1,12 @@
 import { getSystemPrompt } from "@/lib/utils";
 import { LiveConnectConfig, LiveServerMessage } from "@google/genai";
-import { ISettings } from "./types";
+import { ISettings, IUiConfig } from "./types";
+import { AudioTranscription } from "@/lib/audio-transcription";
 
 export type GeminiLiveHandlers = {
   onSetupComplete: () => void;
   onAudioData: (audioData: string) => void;
+  onTranscription: (text?: string) => void;
   onInterrupted: () => void;
   onTurnComplete: () => void;
   onError: (message: string) => void;
@@ -15,30 +17,30 @@ export type GeminiLiveHandlers = {
 export class GeminiLiveAPI {
   private onSetupComplete: GeminiLiveHandlers["onSetupComplete"];
   private onAudioData: GeminiLiveHandlers["onAudioData"];
+  private onTranscription: GeminiLiveHandlers["onTranscription"];
   private onInterrupted: GeminiLiveHandlers["onInterrupted"];
   private onTurnComplete: GeminiLiveHandlers["onTurnComplete"];
   private onError: GeminiLiveHandlers["onError"];
   private onClose: GeminiLiveHandlers["onClose"];
   private onRetry: GeminiLiveHandlers["onRetry"];
 
-  private accumulatedResponseData: string[] = [];
+  private audioTranscription: AudioTranscription;
+  private accumulatedAudio: string[] = [];
   private ws: WebSocket | null;
   private setupConfig: LiveConnectConfig;
   private endpoint: string;
 
   public isConnected: boolean;
 
-  constructor(
-    apiKey: string,
-    handlers: GeminiLiveHandlers,
-    setupConfig: LiveConnectConfig
-  ) {
-    this.endpoint = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContent?key=${apiKey}`;
+  constructor(config: Omit<IUiConfig, "theme">, handlers: GeminiLiveHandlers) {
+    this.endpoint = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContent?key=${config.api_key}`;
     this.isConnected = false;
-    this.setupConfig = setupConfig;
+    this.setupConfig = this.getDefaultConfig(config);
+    this.audioTranscription = new AudioTranscription(config);
 
     this.onSetupComplete = handlers.onSetupComplete || (() => {});
     this.onAudioData = handlers.onAudioData || (() => {});
+    this.onTranscription = handlers.onTranscription || (() => {});
     this.onInterrupted = handlers.onInterrupted || (() => {});
     this.onTurnComplete = handlers.onTurnComplete || (() => {});
     this.onError = handlers.onError || (() => {});
@@ -81,6 +83,7 @@ export class GeminiLiveAPI {
         } else if (response.serverContent) {
           if (response.serverContent.interrupted) {
             this.onInterrupted();
+            this.accumulatedAudio = [];
             return;
           }
 
@@ -88,7 +91,7 @@ export class GeminiLiveAPI {
             const audioData =
               response.serverContent.modelTurn.parts[0].inlineData.data;
             this.onAudioData(audioData);
-            this.accumulatedResponseData.push(audioData);
+            this.accumulatedAudio.push(audioData);
 
             if (!response.serverContent.turnComplete) {
               this.sendContinueSignal();
@@ -97,6 +100,10 @@ export class GeminiLiveAPI {
 
           if (response.serverContent.turnComplete) {
             this.onTurnComplete();
+            this.audioTranscription
+              .transcribeAudio(this.accumulatedAudio.join(""))
+              .then(this.onTranscription);
+            this.accumulatedAudio = [];
           }
         }
       } catch (error) {
@@ -137,7 +144,7 @@ export class GeminiLiveAPI {
     }
   }
 
-  static getDefaultConfig(config: Record<ISettings[number]["value"], string>) {
+  private getDefaultConfig(config: Record<ISettings[number]["value"], string>) {
     return {
       model: "models/gemini-2.0-flash-live-001",
       systemInstruction: {

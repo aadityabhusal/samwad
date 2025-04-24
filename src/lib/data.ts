@@ -29,7 +29,7 @@ export const SETTINGS: ISettings = [
       { value: "female", label: "Female" },
     ],
   },
-  {
+  /* {
     value: "learn_language",
     label: "Learn Language",
     disabled: true,
@@ -50,5 +50,5 @@ export const SETTINGS: ISettings = [
       { value: "1.0", label: "1.0" },
       { value: "0.5", label: "0.5" },
     ],
-  },
+  }, */
 ];

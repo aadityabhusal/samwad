@@ -16,7 +16,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import useAiAssistant from "@/lib/hooks/use-ai-assistant";
-import { useAiStateStore, useUiConfigStore } from "@/lib/store";
+import {
+  useAiStateStore,
+  usePracticeSessionsStore,
+  useUiConfigStore,
+} from "@/lib/store";
 import { useShallow } from "zustand/shallow";
 import { UserMic } from "../ui/user-mic";
 
@@ -33,6 +37,8 @@ export function ActionBar() {
     }))
   );
   const isConnected = useAiStateStore((s) => s.isConnected);
+  const currentSession = usePracticeSessionsStore((s) => s.currentSessionId);
+  const addSession = usePracticeSessionsStore((s) => s.addSession);
 
   const {
     isLoading,
@@ -44,7 +50,7 @@ export function ActionBar() {
   } = useAiAssistant(uiConfig);
 
   return (
-    <div className="flex justify-center gap-8 items-baseline px-2 py-8">
+    <div className="flex justify-center gap-8 items-baseline">
       {isConnected ? (
         <Button
           variant="destructive"
@@ -102,7 +108,10 @@ export function ActionBar() {
         onClick={async () => {
           if (isRecording) pauseRecording();
           else if (isConnected) await resumeRecording();
-          else await startSession();
+          else {
+            if (!currentSession) addSession("Practice Session", true);
+            await startSession();
+          }
         }}
       />
     </div>

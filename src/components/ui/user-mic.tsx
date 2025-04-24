@@ -18,18 +18,26 @@ export function UserMic({
 
   return (
     <Button
-      variant={isConnected ? "secondary" : "outline"}
+      variant={isRecording ? "outline" : isConnected ? "secondary" : undefined}
+      color="red"
       size={"lg"}
-      className={cn("size-16 rounded-full [&_svg]:!size-8")}
+      className={cn(
+        "size-16 rounded-full",
+        isRecording
+          ? "text-primary !border-primary"
+          : isConnected
+          ? "bg-primary/60"
+          : ""
+      )}
       disabled={disabled}
       onClick={onClick}
       children={
         isLoading ? (
-          <Loader2Icon className="animate-spin" />
+          <Loader2Icon className="animate-spin size-8" />
         ) : isRecording ? (
-          <PauseIcon />
+          <PauseIcon className="size-8" />
         ) : (
-          <MicIcon />
+          <MicIcon className="size-8" />
         )
       }
     />

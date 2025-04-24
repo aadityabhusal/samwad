@@ -11,7 +11,7 @@ export type IUiConfig = {
   native_language: string;
   learn_language: string;
   api_key: string;
-  theme: "light" | "dark" | "system";
+  theme?: "light" | "dark";
 };
 
 export type ISettings = {
@@ -20,3 +20,23 @@ export type ISettings = {
   menu: { value: string; label: string }[];
   disabled?: boolean;
 }[];
+
+/* Types for AI Conversation */
+export interface IQuestion {
+  id: string;
+  status: "pending" | "answered" | "incorrect";
+  text: string;
+  timestamp: Date;
+  difficulty: IUiConfig["difficulty"];
+  // priority?: number;
+  // category?: string;
+}
+
+export interface IPracticeSession {
+  id: string;
+  questions: IQuestion[];
+  title?: string;
+  createdAt: Date;
+  updatedAt?: Date;
+  language: string;
+}

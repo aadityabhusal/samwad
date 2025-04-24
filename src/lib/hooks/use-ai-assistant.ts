@@ -2,7 +2,7 @@ import { useState, useRef, useCallback } from "react";
 import { AudioRecorder } from "@/lib/audio/audio-recorder";
 import { GeminiLiveAPI } from "@/lib/gemini-live-api";
 import { AudioStreamer } from "@/lib/audio/audio-streamer";
-import { useAiStateStore } from "../store";
+import { useAiStateStore, usePracticeSessionsStore } from "../store";
 import VolMeterWorket from "../audio/vol-meter-worklet";
 import { IUiConfig } from "../types";
 
@@ -15,11 +15,12 @@ function useAiAssistant(props: Omit<IUiConfig, "theme">) {
   const [isRecording, setIsRecording] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const setAiState = useAiStateStore((s) => s.setAiState);
+  const addQuestion = usePracticeSessionsStore((s) => s.addQuestion);
 
   // Logger callback - can be passed in to update UI logs.
-  const log = useCallback((message: string) => {
+  const log = useCallback((...message: unknown[]) => {
     if (import.meta.env.PROD) return;
-    console.log(message);
+    console.log(...message);
   }, []);
 
   // Ensure that the audio context and streamer are initialized.
@@ -83,6 +84,7 @@ function useAiAssistant(props: Omit<IUiConfig, "theme">) {
     if (providerRef.current?.isConnected) {
       providerRef.current.disconnect();
     }
+    if ("vibrate" in window.navigator) window.navigator.vibrate(50);
   }, [setAiState, log]);
 
   const startSession = useCallback(async () => {
@@ -97,41 +99,42 @@ function useAiAssistant(props: Omit<IUiConfig, "theme">) {
         if (providerRef.current) providerRef.current.disconnect();
 
         // Initialize the API.
-        providerRef.current = new GeminiLiveAPI(
-          props.api_key,
-          {
-            onSetupComplete: () => {
-              log("Setup complete");
-              setIsLoading(false);
-              setAiState({ isConnected: true });
-            },
-            onAudioData: async (audioData) => {
-              log("Speaking...");
-              await playAudioChunk(audioData);
-            },
-            onInterrupted: () => {
-              log("Interrupted");
-              audioStreamerRef.current?.stop();
-              setAiState({ aiVolume: 0 });
-            },
-            onTurnComplete: () => {
-              log("Finished speaking");
-              audioStreamerRef.current?.complete();
-            },
-            onError: (message) => {
-              log("Error: " + message);
-              stopSession();
-            },
-            onRetry: () => {
-              setIsLoading(true);
-            },
-            onClose: () => {
-              log("Connection closed");
-              stopSession();
-            },
+        providerRef.current = new GeminiLiveAPI(props, {
+          onSetupComplete: () => {
+            log("Setup complete");
+            setIsLoading(false);
+            setAiState({ isConnected: true, firstSessionStarted: true });
+            if ("vibrate" in window.navigator) window.navigator.vibrate(50);
           },
-          GeminiLiveAPI.getDefaultConfig(props)
-        );
+          onAudioData: async (audioData) => {
+            log("Speaking...");
+            await playAudioChunk(audioData);
+          },
+          onTranscription(text) {
+            if (text) addQuestion({ text: text.replace(/\n/g, "") });
+            else log("Invalid response:", text);
+          },
+          onInterrupted: () => {
+            log("Interrupted");
+            audioStreamerRef.current?.stop();
+            setAiState({ aiVolume: 0 });
+          },
+          onTurnComplete: () => {
+            log("Finished speaking");
+            audioStreamerRef.current?.complete();
+          },
+          onError: (message) => {
+            log("Error: " + message);
+            stopSession();
+          },
+          onRetry: () => {
+            setIsLoading(true);
+          },
+          onClose: () => {
+            log("Connection closed");
+            stopSession();
+          },
+        });
       }
 
       // Set up audio recorder
@@ -155,6 +158,7 @@ function useAiAssistant(props: Omit<IUiConfig, "theme">) {
     playAudioChunk,
     stopSession,
     setAiState,
+    addQuestion,
   ]);
 
   function onAudioRecorderData(base64Data: string) {
@@ -167,10 +171,7 @@ function useAiAssistant(props: Omit<IUiConfig, "theme">) {
     startSession,
     stopSession,
     resumeRecording: async () => {
-      await audioRecorderRef.current
-        ?.on("data", onAudioRecorderData)
-        .on("volume", (userVolume) => setAiState({ userVolume }))
-        .start();
+      await audioRecorderRef.current?.start();
       setIsRecording(true);
     },
     pauseRecording: () => {

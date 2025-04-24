@@ -1,22 +1,18 @@
 import { useUiConfigStore } from "@/lib/store";
-import { createContext, useContext, useEffect } from "react";
-
-type Theme = "dark" | "light" | "system";
+import { IUiConfig } from "@/lib/types";
+import { createContext, useContext, useLayoutEffect, useMemo } from "react";
 
 type ThemeProviderProps = {
   children: React.ReactNode;
-  // defaultTheme?: Theme;
-  // storageKey?: string;
 };
 
 type ThemeProviderState = {
-  theme: Theme;
-  setTheme: (theme: Theme) => void;
+  theme?: IUiConfig["theme"];
+  toggleTheme: () => void;
 };
 
 const initialState: ThemeProviderState = {
-  theme: "system",
-  setTheme: () => null,
+  toggleTheme: () => {},
 };
 
 const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
@@ -25,27 +21,23 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   const theme = useUiConfigStore((s) => s.theme);
   const setUiConfig = useUiConfigStore((s) => s.setUiConfig);
 
-  useEffect(() => {
-    const root = window.document.documentElement;
-
-    root.classList.remove("light", "dark");
-
-    if (theme === "system") {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
-        .matches
-        ? "dark"
-        : "light";
-
-      root.classList.add(systemTheme);
-      return;
-    }
-
-    root.classList.add(theme);
+  const resolvedTheme = useMemo(() => {
+    const prefersDark = window.matchMedia(
+      "(prefers-color-scheme: dark)"
+    ).matches;
+    return theme || (prefersDark ? "dark" : "light");
   }, [theme]);
+
+  useLayoutEffect(() => {
+    const root = window.document.documentElement;
+    root.classList.remove("light", "dark");
+    root.classList.add(resolvedTheme);
+  }, [resolvedTheme]);
 
   const value = {
     theme,
-    setTheme: (theme: Theme) => setUiConfig({ theme }),
+    toggleTheme: () =>
+      setUiConfig({ theme: resolvedTheme === "dark" ? "light" : "dark" }),
   };
 
   return (
