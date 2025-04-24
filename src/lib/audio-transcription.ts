@@ -1,6 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import { getLanguage } from "@/lib/utils";
-import { usePracticeSessionsStore } from "./store";
+// import { usePracticeSessionsStore } from "./store";
 
 export class AudioTranscription {
   private genAI: GoogleGenAI;
@@ -19,8 +19,8 @@ export class AudioTranscription {
 
   async transcribeAudio(audioBase64: string): Promise<string | undefined> {
     try {
-      const questions = usePracticeSessionsStore.getState().getQuestions();
-      const formattedQuestions = JSON.stringify(questions);
+      // const questions = usePracticeSessionsStore.getState().getQuestions();
+      // const _formattedQuestions = JSON.stringify(questions);
 
       const wavData = await this.pcmToWav(audioBase64);
       const result = await this.genAI.models.generateContent({
@@ -32,9 +32,9 @@ export class AudioTranscription {
               `TRANSCRIBE THE QUESTIONS ASKED BY A TEACHER TO A STUDENT DURING A SPOKEN ${this.learn_language} LANGUAGE PRACTICE SESSION.`,
               `ONLY EXTRACT THE QUESTION THAT SEEMS MOST LIKELY TO HAVE BEEN ASKED AS A TEST QUESTION DURING A SPOKEN ${this.learn_language} LANGUAGE PRACTICE SESSION. DO NOT EXTRACT QUESTIONS ASKED IN ${this.native_language} LANGUAGE.`,
               `THE QUESTION WILL ALWAYS BE IN ${this.learn_language}. IF THERE ARE NO QUESTION IN ${this.learn_language} LANGUAGE, RETURN "NOT FOUND".`,
-              questions.length
-                ? `HERE IS A LIST OF SOME EXAMPLE QUESTIONS THAT THE TEACHER HAD ASKED: ${formattedQuestions}`
-                : "",
+              // questions.length
+              //   ? `HERE IS A LIST OF SOME EXAMPLE QUESTIONS THAT THE TEACHER HAD ASKED: ${formattedQuestions}`
+              //   : "",
             ].join("\n"),
           },
         },

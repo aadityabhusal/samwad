@@ -123,7 +123,7 @@ export function Conversation() {
             <div
               key={item.id}
               className={cn(
-                "w-full p-2 rounded-sm self-end bg-secondary flex gap-2 items-start border border-primary/40"
+                "w-full p-2 rounded-sm self-end bg-secondary flex gap-2 items-start border shadow-sm"
               )}
               ref={i === session?.questions.length - 1 ? lastQuestionRef : null}
             >
@@ -139,7 +139,7 @@ export function Conversation() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuItem
-                    className="text-destructive"
+                    className="text-destructive hover:!text-destructive"
                     onClick={() => deleteQuestion(item.id)}
                   >
                     Delete
