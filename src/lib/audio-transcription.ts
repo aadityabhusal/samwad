@@ -29,7 +29,7 @@ export class AudioTranscription {
           systemInstruction: {
             role: "system",
             text: [
-              `TRANSCRIBE THE QUESTIONS ASKED BY A TEACHER TO A STUDENT DURING A SPOKEN ${this.learn_language} LANGUAGE PRACTICE SESSION.`,
+              `FROM THE GIVEN AUDIO, TRANSCRIBE THE QUESTIONS ASKED BY A TEACHER TO A STUDENT DURING A SPOKEN ${this.learn_language} LANGUAGE PRACTICE SESSION.`,
               `ONLY EXTRACT THE QUESTION THAT SEEMS MOST LIKELY TO HAVE BEEN ASKED AS A TEST QUESTION DURING A SPOKEN ${this.learn_language} LANGUAGE PRACTICE SESSION. DO NOT EXTRACT QUESTIONS ASKED IN ${this.native_language} LANGUAGE.`,
               `THE QUESTION WILL ALWAYS BE IN ${this.learn_language}. IF THERE ARE NO QUESTION IN ${this.learn_language} LANGUAGE, RETURN "NOT FOUND".`,
               // questions.length
@@ -38,7 +38,10 @@ export class AudioTranscription {
             ].join("\n"),
           },
         },
-        contents: [{ inlineData: { mimeType: "audio/wav", data: wavData } }],
+        contents: [
+          { text: "HERE IS THE AUDIO:" },
+          { inlineData: { mimeType: "audio/wav", data: wavData } },
+        ],
       });
       if (result.text?.includes("NOT FOUND") && result.text.length < 15) {
         return undefined;
