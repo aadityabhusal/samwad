@@ -13,7 +13,7 @@ type IUiConfigStore = IUiConfig & {
 export const useUiConfigStore = create(
   persist<IUiConfigStore>(
     (set) => ({
-      difficulty: "beginner",
+      difficulty: "a1",
       playback_rate: "1.0",
       voice: "male",
       native_language: "hi-IN",

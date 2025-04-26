@@ -11,15 +11,20 @@ export const THEMES = [
   { value: "system", label: "System" },
 ];
 
+export const DIFFICULTY = [
+  { value: "a1", label: "Beginner (A1)" },
+  { value: "a2", label: "Elementary (A2)" },
+  { value: "b1", label: "Intermediate (B1)" },
+  { value: "b2", label: "Upper Intermediate (B2)" },
+  { value: "c1", label: "Advanced (C1)" },
+  { value: "c2", label: "Proficient (C2)" },
+];
+
 export const SETTINGS: ISettings = [
   {
     value: "difficulty",
     label: "Difficulty Level",
-    menu: [
-      { value: "beginner", label: "Beginner" },
-      { value: "intermediate", label: "Intermediate" },
-      { value: "advanced", label: "Advanced" },
-    ],
+    menu: DIFFICULTY,
   },
   {
     value: "voice",
