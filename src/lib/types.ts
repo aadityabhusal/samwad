@@ -25,10 +25,11 @@ export type ISettings = {
 /* Types for AI Conversation */
 export interface IQuestion {
   id: string;
-  status: "pending" | "answered" | "incorrect";
+  status: "pending" | "answered";
   text: string;
   timestamp: Date;
   difficulty: IUiConfig["difficulty"];
+  // score?: number;
   // priority?: number;
   // category?: string;
 }

@@ -28,7 +28,9 @@ export const useUiConfigStore = create(
 
 type SetAiState = Partial<Omit<IAiStateStore, "setAiState">>;
 type IAiStateStore = {
-  firstSessionStarted?: boolean;
+  isRecording?: boolean;
+  isLoading?: boolean;
+  sessionStarted?: boolean;
   isConnected?: boolean;
   aiVolume: number;
   userVolume: number;

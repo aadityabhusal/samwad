@@ -15,7 +15,6 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import useAiAssistant from "@/lib/hooks/use-ai-assistant";
 import {
   useAiStateStore,
   usePracticeSessionsStore,
@@ -23,6 +22,7 @@ import {
 } from "@/lib/store";
 import { useShallow } from "zustand/shallow";
 import { UserMic } from "../ui/user-mic";
+import { useLiveApi } from "@/lib/hooks/use-live-api";
 
 export function ActionBar() {
   const { setUiConfig, ...uiConfig } = useUiConfigStore(
@@ -36,18 +36,18 @@ export function ActionBar() {
       learn_language: s.learn_language,
     }))
   );
-  const isConnected = useAiStateStore((s) => s.isConnected);
+  const { isConnected, isLoading, isRecording } = useAiStateStore(
+    useShallow((s) => ({
+      isConnected: s.isConnected,
+      isLoading: s.isLoading,
+      isRecording: s.isRecording,
+    }))
+  );
   const currentSession = usePracticeSessionsStore((s) => s.currentSessionId);
   const addSession = usePracticeSessionsStore((s) => s.addSession);
 
-  const {
-    isLoading,
-    isRecording,
-    stopSession,
-    startSession,
-    pauseRecording,
-    resumeRecording,
-  } = useAiAssistant(uiConfig);
+  const { startSession, stopSession, resumeRecording, pauseRecording } =
+    useLiveApi(uiConfig);
 
   return (
     <div className="flex justify-center gap-8 items-baseline">

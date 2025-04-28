@@ -27,7 +27,7 @@ function useAiAssistant(props: Omit<IUiConfig, "theme">) {
   const handleSetupComplete = useCallback(async () => {
     try {
       setIsLoading(false);
-      setAiState({ isConnected: true, firstSessionStarted: true });
+      setAiState({ isConnected: true, sessionStarted: true });
       if ("vibrate" in window.navigator) window.navigator.vibrate(50);
       if ("wakeLock" in window.navigator) {
         wakeLockRef.current = await navigator.wakeLock.request();

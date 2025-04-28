@@ -11,7 +11,7 @@ import { MicIcon } from "lucide-react";
 
 function App() {
   const isConnected = useAiStateStore((s) => s.isConnected);
-  const firstSessionStarted = useAiStateStore((s) => s.firstSessionStarted);
+  const firstSessionStarted = useAiStateStore((s) => s.sessionStarted);
   const learnLanguage = useUiConfigStore((s) => s.learn_language);
   return (
     <ThemeProvider>

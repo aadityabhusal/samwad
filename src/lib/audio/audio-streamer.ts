@@ -28,7 +28,7 @@ export class AudioStreamer {
     this.onComplete = options?.onComplete || (() => {});
   }
 
-  async addWorklet<T extends (d: unknown) => void>(
+  async addWorklet<T extends (d: MessageEvent<{ volume: number }>) => void>(
     workletName: string,
     workletSrc: string,
     handler: T
