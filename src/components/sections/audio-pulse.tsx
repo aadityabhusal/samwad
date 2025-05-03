@@ -1,5 +1,7 @@
-import { useAiStateStore } from "@/lib/store";
+import { Button } from "@/components/ui/button";
+import { useAiStateStore, useUiConfigStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import { CaptionsIcon, CaptionsOffIcon } from "lucide-react";
 import { useEffect, useRef } from "react";
 
 const lineCount = 5;
@@ -9,6 +11,9 @@ const MAX_HEIGHT = 56; // Maximum height of each line
 export function AudioPulse() {
   const volume = useAiStateStore((s) => s.aiVolume);
   const lines = useRef<(HTMLDivElement | null)[]>([]);
+  const transcription = useAiStateStore((s) => s.transcription);
+  const hideTranscription = useUiConfigStore((s) => s.hideTranscription);
+  const setUiConfig = useUiConfigStore((s) => s.setUiConfig);
 
   useEffect(() => {
     let timeout: number | null = null;
@@ -31,7 +36,8 @@ export function AudioPulse() {
   }, [volume]);
 
   return (
-    <div className={cn("flex justify-center items-center min-h-14")}>
+    <div className={cn("flex justify-between items-center min-h-14 relative")}>
+      <span className="w-10" />
       <div
         className={cn(
           "flex w-32 justify-evenly items-center transition-all duration-500"
@@ -50,6 +56,23 @@ export function AudioPulse() {
           />
         ))}
       </div>
+      <Button
+        variant={"ghost"}
+        size={"icon"}
+        className="text-primary size-7"
+        onClick={() => setUiConfig({ hideTranscription: !hideTranscription })}
+      >
+        {hideTranscription ? (
+          <CaptionsIcon className="size-6" />
+        ) : (
+          <CaptionsOffIcon className="size-6" />
+        )}
+      </Button>
+      {hideTranscription ? null : (
+        <div className="w-full absolute bottom-[calc(100%+12px)] border rounded-t-md bg-background p-3 shadow-[0_-2px_6px_var(--border)]">
+          <p>{transcription}</p>
+        </div>
+      )}
     </div>
   );
 }

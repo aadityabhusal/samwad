@@ -41,8 +41,11 @@ export function Conversation() {
   const questionContainerRef = useRef<HTMLDivElement>(null);
   const hasInitiallyScrolled = useRef<boolean>(false);
 
-  const session = useMemo(
-    () => sessions.find((s) => s.id === sessionId),
+  const questions = useMemo(
+    () =>
+      sessions
+        .find((s) => s.id === sessionId)
+        ?.questions.filter((q) => q.score) || [],
     [sessions, sessionId]
   );
 
@@ -62,7 +65,7 @@ export function Conversation() {
       });
       hasInitiallyScrolled.current = true;
     }
-  }, [session?.questions.length]);
+  }, [questions.length]);
 
   return (
     <ScrollArea
@@ -78,10 +81,10 @@ export function Conversation() {
         <TypographyH4 className="text-lg flex gap-2 items-baseline">
           <span>Questions</span>
           <span className="text-muted-foreground">
-            {session?.questions.length || undefined}
+            {questions.length || undefined}
           </span>
         </TypographyH4>
-        {!session?.questions.length ? null : (
+        {!questions.length ? null : (
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button
@@ -98,7 +101,7 @@ export function Conversation() {
                   the questions
                 </AlertDialogDescription>
               </AlertDialogHeader>
-              <AlertDialogFooter className="justify-end">
+              <AlertDialogFooter className="justify-center">
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                 <AlertDialogAction
                   className="bg-destructive"
@@ -111,7 +114,7 @@ export function Conversation() {
           </AlertDialog>
         )}
       </div>
-      {!session || !session.questions.length ? (
+      {!questions.length ? (
         <div className="flex flex-col items-center select-none mt-[25%]">
           <SearchXIcon className="size-24 text-primary mb-4" />
           <TypographyH4>No questions found.</TypographyH4>
@@ -119,16 +122,21 @@ export function Conversation() {
         </div>
       ) : (
         <div className="flex flex-col w-full mx-auto p-3 gap-5">
-          {session.questions.map((item, i) => (
+          {questions.map((item, i) => (
             <div
               key={item.id}
               className={cn(
                 "w-full p-2 rounded-sm self-end bg-secondary flex gap-2 items-start border shadow-sm"
               )}
-              ref={i === session?.questions.length - 1 ? lastQuestionRef : null}
+              ref={i === questions.length - 1 ? lastQuestionRef : null}
             >
               <BotMessageSquareIcon className="size-5 mt-0.5 text-primary" />
               <p className="flex-1">{item.text}</p>
+              <span className="text-muted-foreground flex gap-0.5">
+                <span>{item.score || undefined}</span>
+                <span>/</span>
+                <span>10</span>
+              </span>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button

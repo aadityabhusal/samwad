@@ -1,10 +1,10 @@
 import { useState, useRef, useCallback } from "react";
 import { AudioRecorder } from "@/lib/audio/audio-recorder";
-import { GeminiLiveAPI } from "@/lib/gemini-live-api";
+import { GeminiLiveAPI } from "@/archive/gemini-live-api";
 import { AudioStreamer } from "@/lib/audio/audio-streamer";
-import { useAiStateStore, usePracticeSessionsStore } from "../store";
-import VolMeterWorket from "../audio/vol-meter-worklet";
-import { IUiConfig } from "../types";
+import { useAiStateStore, usePracticeSessionsStore } from "@/lib/store";
+import VolMeterWorket from "@/lib/audio/vol-meter-worklet";
+import { IUiConfig } from "@/lib/types";
 
 function useAiAssistant(props: Omit<IUiConfig, "theme">) {
   // Refs for holding objects that live during the hook's lifetime.

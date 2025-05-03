@@ -32,8 +32,10 @@ type IAiStateStore = {
   isLoading?: boolean;
   sessionStarted?: boolean;
   isConnected?: boolean;
+  isTurnComplete?: boolean;
   aiVolume: number;
   userVolume: number;
+  transcription?: string;
   setAiState: (
     change: SetAiState | ((change: SetAiState) => SetAiState)
   ) => void;
@@ -49,11 +51,14 @@ export const useAiStateStore = create<IAiStateStore>((set) => ({
 type IPracticeSessionsStore = {
   sessions: IPracticeSession[];
   currentSessionId?: string;
+  currentQuestionId?: string;
   addSession: (title: string, setCurrentSession?: boolean) => void;
-  getQuestions: () => string[];
-  addQuestion: (question: Pick<IQuestion, "text">) => void;
+  getQuestions: (type?: "pending" | "answered") => IQuestion[];
+  addQuestions: (questions: IQuestion[], setCurrentQuestion?: boolean) => void;
+  addScore: (score: number) => void;
   deleteQuestion: (id: string) => void;
   deleteAllQuestions: () => void;
+  setCurrentQuestion: (questionId: string) => void;
 };
 export const usePracticeSessionsStore = create(
   persist<IPracticeSessionsStore>(
@@ -73,26 +78,45 @@ export const usePracticeSessionsStore = create(
             }),
           };
         }),
-      getQuestions: () => {
+      getQuestions: (type?: "pending" | "answered") => {
         const { sessions, currentSessionId } = get();
         const questions = sessions.find(
           (s) => s.id === currentSessionId
         )?.questions;
-        return questions?.map((q) => q.text) || [];
+        return (
+          questions?.filter((question) => {
+            if (type === "pending") return !question.score;
+            if (type === "answered") return question.score;
+            return true;
+          }) || []
+        );
       },
-      addQuestion: (question) =>
+      addQuestions: (qns, setCurrent) =>
+        set((state) => ({
+          ...(setCurrent ? { currentQuestionId: qns[0].id } : {}),
+          sessions: state.sessions.map((session) => {
+            if (session.id === state.currentSessionId) {
+              return { ...session, questions: session.questions.concat(qns) };
+            }
+            return session;
+          }),
+        })),
+      setCurrentQuestion: (currentQuestionId) =>
+        set(() => ({ currentQuestionId })),
+      addScore: (score: number) =>
         set((state) => ({
           sessions: state.sessions.map((session) => {
             if (session.id === state.currentSessionId) {
               return {
                 ...session,
-                questions: session.questions.concat({
-                  ...question,
-                  difficulty: useUiConfigStore.getState().difficulty,
-                  id: uuid(),
-                  timestamp: new Date(),
-                  status: "pending",
-                }),
+                questions: session.questions
+                  .map((question) => {
+                    if (question.id === state.currentQuestionId) {
+                      return { ...question, score };
+                    }
+                    return question;
+                  })
+                  .filter((q) => q.score),
               };
             }
             return session;

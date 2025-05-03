@@ -8,6 +8,7 @@ import { TypographyH1, TypographyH4 } from "@/components/ui/typography";
 import { LANGUAGES } from "@/lib/data";
 import { Conversation } from "@/components/sections/conversation";
 import { MicIcon } from "lucide-react";
+import { Toaster } from "@/components/ui/sonner";
 
 function App() {
   const isConnected = useAiStateStore((s) => s.isConnected);
@@ -49,6 +50,7 @@ function App() {
         </div>
         <PWAAlert />
       </div>
+      <Toaster />
     </ThemeProvider>
   );
 }

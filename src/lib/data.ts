@@ -12,12 +12,12 @@ export const THEMES = [
 ];
 
 export const DIFFICULTY = [
-  { value: "a1", label: "Beginner (A1)" },
-  { value: "a2", label: "Elementary (A2)" },
-  { value: "b1", label: "Intermediate (B1)" },
-  { value: "b2", label: "Upper Intermediate (B2)" },
-  { value: "c1", label: "Advanced (C1)" },
-  { value: "c2", label: "Proficient (C2)" },
+  { value: "a1", label: "A1", secondaryLabel: "Beginner" },
+  { value: "a2", label: "A2", secondaryLabel: "Beginner+" },
+  { value: "b1", label: "B1", secondaryLabel: "Intermediate" },
+  { value: "b2", label: "B2", secondaryLabel: "Intermediate+" },
+  { value: "c1", label: "C1", secondaryLabel: "Advanced" },
+  { value: "c2", label: "C2", secondaryLabel: "Advanced+" },
 ];
 
 export const SETTINGS: ISettings = [

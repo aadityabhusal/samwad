@@ -67,7 +67,7 @@ export function ActionBar() {
               children={<Settings2Icon className="size-8" />}
             />
           </DropdownMenuTrigger>
-          <DropdownMenuContent>
+          <DropdownMenuContent align="end">
             <DropdownMenuLabel>Settings</DropdownMenuLabel>
             <DropdownMenuSeparator />
             {SETTINGS.map(({ menu, value, label, disabled }) => (
@@ -86,12 +86,11 @@ export function ActionBar() {
                         setUiConfig((p) => ({ ...p, [value]: val }))
                       }
                     >
-                      {menu.map(({ value, label }) => (
-                        <DropdownMenuRadioItem
-                          key={value}
-                          value={value}
-                          children={label}
-                        />
+                      {menu.map(({ value, label, secondaryLabel }) => (
+                        <DropdownMenuRadioItem key={value} value={value}>
+                          <span>{label}</span>
+                          <DropdownMenuShortcut children={secondaryLabel} />
+                        </DropdownMenuRadioItem>
                       ))}
                     </DropdownMenuRadioGroup>
                   </DropdownMenuSubContent>

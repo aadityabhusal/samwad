@@ -35,7 +35,9 @@ export class AudioTranscription {
               // questions.length
               //   ? `HERE IS A LIST OF SOME EXAMPLE QUESTIONS THAT THE TEACHER HAD ASKED: ${formattedQuestions}`
               //   : "",
-            ].join("\n"),
+            ]
+              .join("\n")
+              .toUpperCase(),
           },
         },
         contents: [

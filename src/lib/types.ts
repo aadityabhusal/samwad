@@ -12,24 +12,31 @@ export type IUiConfig = {
   learn_language: string;
   api_key: string;
   theme?: "light" | "dark";
-  lastGreeted?: Date;
+  hideTranscription?: boolean;
 };
 
 export type ISettings = {
-  value: keyof Omit<IUiConfig, "api_key" | "theme" | "lastGreeted">;
+  value: keyof Pick<
+    IUiConfig,
+    | "difficulty"
+    | "playback_rate"
+    | "voice"
+    | "native_language"
+    | "learn_language"
+  >;
   label: string;
-  menu: { value: string; label: string }[];
+  menu: { value: string; label: string; secondaryLabel?: string }[];
   disabled?: boolean;
 }[];
 
 /* Types for AI Conversation */
 export interface IQuestion {
   id: string;
-  status: "pending" | "answered";
   text: string;
-  timestamp: Date;
   difficulty: IUiConfig["difficulty"];
-  // score?: number;
+  score?: number;
+  // status: "pending" | "answered";
+  // timestamp: Date; // should be created_at and updated_at
   // priority?: number;
   // category?: string;
 }
