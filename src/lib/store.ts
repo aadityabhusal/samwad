@@ -30,12 +30,13 @@ type SetAiState = Partial<Omit<IAiStateStore, "setAiState">>;
 type IAiStateStore = {
   isRecording?: boolean;
   isLoading?: boolean;
-  sessionStarted?: boolean;
   isConnected?: boolean;
   isTurnComplete?: boolean;
   aiVolume: number;
   userVolume: number;
   transcription?: string;
+  currentSession?: string;
+  currentQuestion?: string;
   setAiState: (
     change: SetAiState | ((change: SetAiState) => SetAiState)
   ) => void;
@@ -49,16 +50,16 @@ export const useAiStateStore = create<IAiStateStore>((set) => ({
 }));
 
 type IPracticeSessionsStore = {
+  // Session
   sessions: IPracticeSession[];
-  currentSessionId?: string;
-  currentQuestionId?: string;
   addSession: (title: string, setCurrentSession?: boolean) => void;
+  deleteSession: (id: string) => void;
+  // Question
   getQuestions: (type?: "pending" | "answered") => IQuestion[];
   addQuestions: (questions: IQuestion[], setCurrentQuestion?: boolean) => void;
-  addScore: (score: number) => void;
   deleteQuestion: (id: string) => void;
   deleteAllQuestions: () => void;
-  setCurrentQuestion: (questionId: string) => void;
+  addScore: (score: number) => void;
 };
 export const usePracticeSessionsStore = create(
   persist<IPracticeSessionsStore>(
@@ -67,8 +68,8 @@ export const usePracticeSessionsStore = create(
       addSession: (title: string, setCurrent) =>
         set((state) => {
           const id = uuid();
+          if (setCurrent) useAiStateStore.setState({ currentSession: id });
           return {
-            ...(setCurrent ? { currentSessionId: id } : {}),
             sessions: state.sessions.concat({
               id,
               createdAt: new Date(),
@@ -78,10 +79,18 @@ export const usePracticeSessionsStore = create(
             }),
           };
         }),
+      deleteSession: (id: string) =>
+        set((state) => {
+          if (id === useAiStateStore.getState().currentSession)
+            useAiStateStore.setState({ currentSession: undefined });
+          return {
+            sessions: state.sessions.filter((session) => session.id !== id),
+          };
+        }),
       getQuestions: (type?: "pending" | "answered") => {
-        const { sessions, currentSessionId } = get();
+        const { sessions } = get();
         const questions = sessions.find(
-          (s) => s.id === currentSessionId
+          (s) => s.id === useAiStateStore.getState().currentSession
         )?.questions;
         return (
           questions?.filter((question) => {
@@ -92,26 +101,28 @@ export const usePracticeSessionsStore = create(
         );
       },
       addQuestions: (qns, setCurrent) =>
-        set((state) => ({
-          ...(setCurrent ? { currentQuestionId: qns[0].id } : {}),
-          sessions: state.sessions.map((session) => {
-            if (session.id === state.currentSessionId) {
-              return { ...session, questions: session.questions.concat(qns) };
-            }
-            return session;
-          }),
-        })),
-      setCurrentQuestion: (currentQuestionId) =>
-        set(() => ({ currentQuestionId })),
+        set((state) => {
+          if (setCurrent)
+            useAiStateStore.setState({ currentQuestion: qns[0].id });
+          return {
+            sessions: state.sessions.map((session) => {
+              if (session.id === useAiStateStore.getState().currentSession) {
+                return { ...session, questions: session.questions.concat(qns) };
+              }
+              return session;
+            }),
+          };
+        }),
       addScore: (score: number) =>
         set((state) => ({
           sessions: state.sessions.map((session) => {
-            if (session.id === state.currentSessionId) {
+            const aiState = useAiStateStore.getState();
+            if (session.id === aiState.currentSession) {
               return {
                 ...session,
                 questions: session.questions
                   .map((question) => {
-                    if (question.id === state.currentQuestionId) {
+                    if (question.id === aiState.currentQuestion) {
                       return { ...question, score };
                     }
                     return question;
@@ -125,7 +136,7 @@ export const usePracticeSessionsStore = create(
       deleteQuestion: (id) =>
         set((state) => ({
           sessions: state.sessions.map((session) => {
-            if (session.id === state.currentSessionId) {
+            if (session.id === useAiStateStore.getState().currentSession) {
               return {
                 ...session,
                 questions: session.questions?.filter((q) => q.id !== id),
@@ -137,7 +148,7 @@ export const usePracticeSessionsStore = create(
       deleteAllQuestions: () =>
         set((state) => ({
           sessions: state.sessions.map((session) => {
-            if (session.id === state.currentSessionId) {
+            if (session.id === useAiStateStore.getState().currentSession) {
               return { ...session, questions: [] };
             }
             return session;

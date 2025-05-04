@@ -36,14 +36,15 @@ export function ActionBar() {
       learn_language: s.learn_language,
     }))
   );
-  const { isConnected, isLoading, isRecording } = useAiStateStore(
-    useShallow((s) => ({
-      isConnected: s.isConnected,
-      isLoading: s.isLoading,
-      isRecording: s.isRecording,
-    }))
-  );
-  const currentSession = usePracticeSessionsStore((s) => s.currentSessionId);
+  const { isConnected, isLoading, isRecording, currentSession } =
+    useAiStateStore(
+      useShallow((s) => ({
+        isConnected: s.isConnected,
+        isLoading: s.isLoading,
+        isRecording: s.isRecording,
+        currentSession: s.currentSession,
+      }))
+    );
   const addSession = usePracticeSessionsStore((s) => s.addSession);
 
   const { startSession, stopSession, resumeRecording, pauseRecording } =

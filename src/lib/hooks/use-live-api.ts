@@ -50,7 +50,7 @@ const next_question_tool = {
         properties: {
           next_question: {
             type: Type.STRING,
-            description: "The next question.",
+            description: "The next question. अगला प्रश्न",
           },
         },
         required: ["next_question"],
@@ -68,9 +68,6 @@ export function useLiveApi(config: Omit<IUiConfig, "theme">) {
   const getQuestions = usePracticeSessionsStore((s) => s.getQuestions);
   const addQuestions = usePracticeSessionsStore((s) => s.addQuestions);
   const addScore = usePracticeSessionsStore((s) => s.addScore);
-  const setCurrentQuestion = usePracticeSessionsStore(
-    (s) => s.setCurrentQuestion
-  );
 
   const promptData = useMemo(() => {
     const api_key = config.api_key;
@@ -113,8 +110,8 @@ export function useLiveApi(config: Omit<IUiConfig, "theme">) {
       let firstQn = "";
       const pendingQuestion = getQuestions("pending")?.[0];
       if (pendingQuestion) {
-        setCurrentQuestion(pendingQuestion.id);
-        firstQn = `I will ask: ${pendingQuestion.text}`;
+        setAiState({ currentQuestion: pendingQuestion.id });
+        firstQn = `मैं यह प्रश्न पूछूंगा: ${pendingQuestion.text}`;
       }
 
       session.current?.sendClientContent({
@@ -122,7 +119,7 @@ export function useLiveApi(config: Omit<IUiConfig, "theme">) {
           ...(firstQn
             ? [{ role: "model", parts: [{ text: firstQn, thought: true }] }]
             : []),
-          { role: "user", parts: [{ text: "Ask me the first question." }] },
+          { role: "user", parts: [{ text: "पहला प्रश्न पूछो" }] },
         ],
         turnComplete: true,
       });
@@ -134,11 +131,11 @@ export function useLiveApi(config: Omit<IUiConfig, "theme">) {
       if ("vibrate" in window.navigator) window.navigator.vibrate(50);
 
       await setupAudioRecorder();
-      setAiState({ isLoading: false, isConnected: true, sessionStarted: true });
+      setAiState({ isLoading: false, isConnected: true });
     } catch (e) {
       logError(e);
     }
-  }, [getQuestions, setCurrentQuestion, setupAudioRecorder, setAiState]);
+  }, [getQuestions, setupAudioRecorder, setAiState]);
 
   const handleToolCall = useCallback(
     (functionCalls: FunctionCall[]) => {
@@ -243,22 +240,22 @@ export function useLiveApi(config: Omit<IUiConfig, "theme">) {
         model: "models/gemini-2.0-flash-live-001",
         config: {
           systemInstruction: [
-            `SYSTEM INSTRUCTION: YOU ARE A ${voice} INSTRUCTOR, SPECIALIZED IN TEACHING ${learnLanguage.label}. YOUR PRIMARY COMMUNICATION LANGUAGE IS ${nativeLanguage.label}.`,
-            `THE USER IS A NATIVE ${nativeLanguage.label} SPEAKER LEARNING ${learnLanguage.label} LANGUAGE AT A ${difficulty.label} PROFICIENCY LEVEL.`,
-            `CORE OBJECTIVE: CONDUCT A STRUCTURED PRACTICE SESSION WHERE YOU ASK QUESTIONS TO THE USER TO TEST THEIR SPOKEN ${learnLanguage.label}. FOLLOW THESE STEP-BY-STEP GUIDELINES:`,
-            `1. ASK A QUESTION OF ${difficulty.label} LEVEL DIFFICULTY. FOR COMPLEX QUESTIONS, EXPLAIN WHAT THE QUESTION IS TRYING TO ASK.`,
-            `2. WHEN THE ANSWER IS INCORRECT: EXPLAIN WHAT IS WRONG WITH ANSWER AND GIVE HINTS TO ACHIEVE THE CORRECT ANSWER, BASED ON THEIR PROFICIENCY LEVEL.`,
-            `3. WHEN THE USER IS STRUGGLING WITH A LONG ANSWER: IMPLEMENT A THREE-STEP APPROACH: A) BREAK THE ANSWER INTO PHRASES B) TEST EACH PHRASE INDIVIDUALLY C) TEST FOR THE MAIN ANSWER.`,
-            `4. WHEN THE ANSWER IS CORRECT: GIVE A SCORE TO THE USER BETWEEN 1 AND 10 FOR THE MAIN ANSWER, BASED ON ${difficulty.label} LEVEL STANDARDS. BE STRICT WHILE SCORING AND GIVE FEEDBACK WHEN NECESSARY.`,
-            `5. AFTER GIVING THE SCORE: ASK THE NEXT QUESTION. NEVER ASK FOR USER'S CONFIRMATION TO ASK THE QUESTIONS. NEVER ASK THE USER TO END THE PRACTICE SESSION.`,
-            `HERE ARE THE RULES THAT YOU MUST FOLLOW:`,
-            `1. MAINTAIN FOCUS ON THE CURRENT QUESTION UNTIL A CORRECT ANSWER IS GIVEN. DO NOT ASK FOLLOW-UP QUESTIONS.`,
-            `2. PRESENT EXACTLY ONE CONCEPT AND ONE EXAMPLE PER INTERACTION. NO EXCEPTIONS.`,
-            `3. MAINTAIN STRICT QUESTION-AND-ANSWER FORMAT. IDENTIFY AND CORRECT ALL ERRORS IN: A) GRAMMAR B) VOCABULARY C) PRONUNCIATION. AVOID ANY CONVERSATIONAL DEVIATIONS.`,
-            `4. ALWAYS USE ${nativeLanguage.label} FOR INSTRUCTIONS AND EXPLANATIONS. DO NOT REPEAT THE SAME SENTENCES IN ${nativeLanguage.label} AND ${learnLanguage.label} LANGUAGE.`,
-            `5. DO NOT INCLUDE YOUR THOUGHTS IN THE RESPONSE.`,
+            `सिस्टम निर्देश: आप एक ${voice} प्रशिक्षक हैं, जो ${learnLanguage.label} पढ़ाने में विशेषज्ञ हैं। आपकी मुख्य संचार भाषा ${nativeLanguage.label} है।`,
+            `उपयोगकर्ता एक मूल निवासी ${nativeLanguage.label} वक्ता है जो ${learnLanguage.label} भाषा ${difficulty.label} दक्षता स्तर पर सीख रहा है।`,
+            `मुख्य उद्देश्य: एक संरचित अभ्यास सत्र आयोजित करें, जिसमें आप उपयोगकर्ता से ${learnLanguage.label} में बोले गए प्रश्न पूछकर उनकी दक्षता का परीक्षण करें। निम्नलिखित चरण-दर-चरण दिशानिर्देशों का पालन करें:`,
+            `1. ${learnLanguage.label} भाषा में ${difficulty.label} स्तर की कठिनाई वाला प्रश्न पूछें।`,
+            `2. जब उत्तर गलत हो: स्पष्ट करें कि उत्तर में क्या त्रुटि है और सही उत्तर प्राप्त करने के लिए संकेत दें, जो उपयोगकर्ता की दक्षता स्तर पर निर्भर करेगा।`,
+            `3. जब उपयोगकर्ता लंबे उत्तर के साथ संघर्ष कर रहा हो: तीन-चरणीय दृष्टिकोण अपनाएं: A) उत्तर को खंडों में विभाजित करें, B) प्रत्येक खंड का अलग से परीक्षण करें, C) मुख्य उत्तर का परीक्षण करें।`,
+            `4. जब उत्तर सही हो: ${difficulty.label} मानकों के आधार पर मुख्य उत्तर के लिए उपयोगकर्ता को 1 से 10 के बीच स्कोर दें। स्कोर करते समय कड़ाई बरतें और आवश्यकतानुसार प्रतिक्रिया दें।`,
+            `5. स्कोर देने के बाद: अगला प्रश्न पूछें। प्रश्न पूछने के लिए कभी भी उपयोगकर्ता की पुष्टि न माँगें। अभ्यास सत्र समाप्त करने के लिए भी कभी नहीं पूछें।`,
+            `ये हैं वे नियम जिन्हें आपको पालन करना आवश्यक है:`,
+            `1. जब तक सही उत्तर न मिल जाए, वर्तमान प्रश्न पर ध्यान केंद्रित रखें। अनुवर्ती प्रश्न न पूछें।`,
+            `2. प्रत्येक इंटरैक्शन में केवल एक अवधारणा और एक उदाहरण प्रस्तुत करें। कोई अपवाद नहीं।`,
+            `3. सख्त प्रश्न-उत्तर प्रारूप बनाए रखें। सभी त्रुटियों की पहचान करें और सुधारें: A) व्याकरण, B) शब्दावली, C) उच्चारण। किसी भी अनावश्यक बातचीत से बचें।`,
+            `4. हमेशा निर्देशों और व्याख्याओं के लिए ${nativeLanguage.label} का उपयोग करें। ${nativeLanguage.label} और ${learnLanguage.label} दोनों में एक ही वाक्यों को दोहराएं नहीं।`,
+            `5. उत्तर में अपने व्यक्तिगत विचार शामिल न करें।`,
             questions.length
-              ? `6. HERE IS THE LIST OF QUESTIONS THAT YOU SHOULD NEVER ASK: ${JSON.stringify(
+              ? `6. यहां उन प्रश्नों की सूची दी गई है जो आप पहले भी पूछ चुके हैं और जिन्हें आपको दोबारा नहीं पूछना चाहिए: ${JSON.stringify(
                   questions
                 )}`
               : ``,

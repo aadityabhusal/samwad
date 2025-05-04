@@ -1,6 +1,5 @@
-import { usePracticeSessionsStore } from "@/lib/store";
+import { useAiStateStore, usePracticeSessionsStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useLayoutEffect, useMemo, useRef } from "react";
 import {
   DropdownMenu,
@@ -13,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import {
   BotMessageSquareIcon,
   EllipsisVerticalIcon,
+  MicIcon,
   SearchXIcon,
   Trash2Icon,
   TrashIcon,
@@ -29,9 +29,10 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { DIFFICULTY } from "@/lib/data";
 
 export function Conversation() {
-  const sessionId = usePracticeSessionsStore((s) => s.currentSessionId);
+  const sessionId = useAiStateStore((s) => s.currentSession);
   const sessions = usePracticeSessionsStore((s) => s.sessions);
   const deleteQuestion = usePracticeSessionsStore((s) => s.deleteQuestion);
   const deleteAllQuestions = usePracticeSessionsStore(
@@ -42,10 +43,7 @@ export function Conversation() {
   const hasInitiallyScrolled = useRef<boolean>(false);
 
   const questions = useMemo(
-    () =>
-      sessions
-        .find((s) => s.id === sessionId)
-        ?.questions.filter((q) => q.score) || [],
+    () => sessions.find((s) => s.id === sessionId)?.questions || [],
     [sessions, sessionId]
   );
 
@@ -68,13 +66,10 @@ export function Conversation() {
   }, [questions.length]);
 
   return (
-    <ScrollArea
-      className="h-full w-full"
+    <div
+      className="h-full flex-1 overflow-y-scroll"
       ref={(ref) => {
-        if (!ref) return;
-        questionContainerRef.current = ref.querySelector(
-          '[data-slot="scroll-area-viewport"]'
-        );
+        if (ref) questionContainerRef.current = ref;
       }}
     >
       <div className="p-2 sticky -top-[1px] bg-background shadow border-b flex justify-between items-center">
@@ -115,10 +110,14 @@ export function Conversation() {
         )}
       </div>
       {!questions.length ? (
-        <div className="flex flex-col items-center select-none mt-[25%]">
-          <SearchXIcon className="size-24 text-primary mb-4" />
+        <div className="flex flex-col gap-4 items-center select-none mt-[25%]">
+          <SearchXIcon className="size-24 text-primary" />
           <TypographyH4>No questions found.</TypographyH4>
-          <TypographyH4>Start a conversation.</TypographyH4>
+          <TypographyH4 className="flex gap-2 items-center">
+            <span>Click on</span>
+            <MicIcon className="size-7 text-primary-foreground border-primary bg-primary p-1 rounded-full" />
+            <span> below to start.</span>
+          </TypographyH4>
         </div>
       ) : (
         <div className="flex flex-col w-full mx-auto p-3 gap-5">
@@ -131,12 +130,27 @@ export function Conversation() {
               ref={i === questions.length - 1 ? lastQuestionRef : null}
             >
               <BotMessageSquareIcon className="size-5 mt-0.5 text-primary" />
-              <p className="flex-1">{item.text}</p>
-              <span className="text-muted-foreground flex gap-0.5">
-                <span>{item.score || undefined}</span>
-                <span>/</span>
-                <span>10</span>
-              </span>
+              <div className="flex-1">
+                <p className="">{item.text}</p>
+                {(() => {
+                  const difficulty = DIFFICULTY.find(
+                    (d) => d.value === item.difficulty
+                  );
+                  return (
+                    <p className="text-muted-foreground">
+                      <span>{difficulty?.secondaryLabel}</span>
+                      <span>{` (${difficulty?.label})`}</span>
+                    </p>
+                  );
+                })()}
+              </div>
+              {!item.score ? null : (
+                <span className="text-muted-foreground flex gap-0.5">
+                  <span>{item.score || undefined}</span>
+                  <span>/</span>
+                  <span>10</span>
+                </span>
+              )}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -161,6 +175,6 @@ export function Conversation() {
           ))}
         </div>
       )}
-    </ScrollArea>
+    </div>
   );
 }
