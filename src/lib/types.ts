@@ -13,6 +13,7 @@ export type IUiConfig = {
   api_key: string;
   theme?: "light" | "dark";
   hideTranscription?: boolean;
+  disable_question?: "yes" | "no";
 };
 
 export type ISettings = {
@@ -23,6 +24,7 @@ export type ISettings = {
     | "voice"
     | "native_language"
     | "learn_language"
+    | "disable_question"
   >;
   label: string;
   menu: { value: string; label: string; secondaryLabel?: string }[];

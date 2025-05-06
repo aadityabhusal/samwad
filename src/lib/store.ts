@@ -19,6 +19,7 @@ export const useUiConfigStore = create(
       native_language: "hi-IN",
       learn_language: "en-US",
       api_key: "",
+      disable_question: "no",
       setUiConfig: (change) =>
         set((state) => (typeof change === "function" ? change(state) : change)),
     }),

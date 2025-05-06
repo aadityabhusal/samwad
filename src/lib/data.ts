@@ -34,15 +34,22 @@ export const SETTINGS: ISettings = [
       { value: "female", label: "Female" },
     ],
   },
-  /* {
-    value: "learn_language",
-    label: "Learn Language",
-    disabled: true,
+  {
+    value: "native_language",
+    label: "Practice Language",
     menu: LANGUAGES,
   },
   {
-    value: "native_language",
-    label: "Your Language",
+    value: "disable_question",
+    label: "Disable Scoring",
+    menu: [
+      { value: "yes", label: "Yes" },
+      { value: "no", label: "No" },
+    ],
+  },
+  /* {
+    value: "learn_language",
+    label: "Learn Language",
     disabled: true,
     menu: LANGUAGES,
   },

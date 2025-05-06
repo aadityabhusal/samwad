@@ -34,6 +34,7 @@ export function ActionBar() {
       voice: s.voice,
       native_language: s.native_language,
       learn_language: s.learn_language,
+      disable_question: s.disable_question,
     }))
   );
   const { isConnected, isLoading, isRecording, currentSession } =

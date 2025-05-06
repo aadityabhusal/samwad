@@ -117,7 +117,7 @@ export function Header() {
               </Button>
             )}
           </DrawerHeader>
-          <ul className="p-2 h-full flex-1 overflow-y-scroll flex flex-col gap-2">
+          <ul className="p-2 h-full flex-1 overflow-y-auto flex flex-col gap-2">
             {!sessions.length ? (
               <div className="mx-auto mt-[20%] flex flex-col gap-4 items-center">
                 <TypographyH4>No session found.</TypographyH4>

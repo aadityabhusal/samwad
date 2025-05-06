@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useRef } from "react";
 import {
   FunctionCall,
   FunctionResponse,
@@ -12,10 +12,9 @@ import {
 import { IUiConfig } from "@/lib/types";
 import { useAiStateStore, usePracticeSessionsStore } from "@/lib/store";
 import { AudioStreamer } from "../audio/audio-streamer";
-import { base64ToArrayBuffer, getLanguage, logError } from "@/lib/utils";
+import { base64ToArrayBuffer, getSystemPrompt, logError } from "@/lib/utils";
 import { AudioRecorder } from "@/lib/audio/audio-recorder";
 import VolMeterWorklet from "@/lib/audio/vol-meter-worklet";
-import { DIFFICULTY } from "@/lib/data";
 import { v4 as uuid } from "uuid";
 
 const score_tool: Tool = {
@@ -68,16 +67,6 @@ export function useLiveApi(config: Omit<IUiConfig, "theme">) {
   const getQuestions = usePracticeSessionsStore((s) => s.getQuestions);
   const addQuestions = usePracticeSessionsStore((s) => s.addQuestions);
   const addScore = usePracticeSessionsStore((s) => s.addScore);
-
-  const promptData = useMemo(() => {
-    const api_key = config.api_key;
-    const voice = config.voice;
-    const learnLanguage = getLanguage(config.learn_language);
-    const nativeLanguage = getLanguage(config.native_language);
-    const difficulty =
-      DIFFICULTY.find((d) => d.value === config.difficulty) || DIFFICULTY[0];
-    return { api_key, voice, learnLanguage, nativeLanguage, difficulty };
-  }, [config]);
 
   const setupAudioStreamer = useCallback(async () => {
     if (audioStreamerRef.current) return;
@@ -147,7 +136,7 @@ export function useLiveApi(config: Omit<IUiConfig, "theme">) {
           name === "next_questions" &&
           typeof args?.next_question === "string"
         ) {
-          const difficulty = promptData.difficulty.value;
+          const difficulty = config.difficulty;
           addQuestions(
             [{ text: args.next_question, id: uuid(), difficulty }],
             true
@@ -157,7 +146,7 @@ export function useLiveApi(config: Omit<IUiConfig, "theme">) {
       });
       session.current?.sendToolResponse({ functionResponses });
     },
-    [addQuestions, addScore, promptData.difficulty.value]
+    [addQuestions, addScore, config.difficulty]
   );
 
   const handleServerContent = useCallback(
@@ -217,6 +206,7 @@ export function useLiveApi(config: Omit<IUiConfig, "theme">) {
     wakeLockRef.current?.release().then(() => (wakeLockRef.current = null));
 
     session.current?.close();
+    session.current = null;
     setAiState({
       isConnected: false,
       isRecording: false,
@@ -232,46 +222,26 @@ export function useLiveApi(config: Omit<IUiConfig, "theme">) {
     audioStreamerRef.current?.stop(); // Reset the previous audio streaming state.
     session.current?.close(); // Close the previous active connection
 
-    const { learnLanguage, nativeLanguage, difficulty, voice } = promptData;
-    const questions = getQuestions().map((q) => q.text);
-    const genAI = new GoogleGenAI({ apiKey: promptData.api_key });
+    const genAI = new GoogleGenAI({ apiKey: config.api_key });
     try {
       session.current = await genAI.live.connect({
         model: "models/gemini-2.0-flash-live-001",
         config: {
-          systemInstruction: [
-            `सिस्टम निर्देश: आप एक ${voice} प्रशिक्षक हैं, जो ${learnLanguage.label} पढ़ाने में विशेषज्ञ हैं। आपकी मुख्य संचार भाषा ${nativeLanguage.label} है।`,
-            `उपयोगकर्ता एक मूल निवासी ${nativeLanguage.label} वक्ता है जो ${learnLanguage.label} भाषा ${difficulty.label} दक्षता स्तर पर सीख रहा है।`,
-            `मुख्य उद्देश्य: एक संरचित अभ्यास सत्र आयोजित करें, जिसमें आप उपयोगकर्ता से ${learnLanguage.label} में बोले गए प्रश्न पूछकर उनकी दक्षता का परीक्षण करें। निम्नलिखित चरण-दर-चरण दिशानिर्देशों का पालन करें:`,
-            `1. ${learnLanguage.label} भाषा में ${difficulty.label} स्तर की कठिनाई वाला प्रश्न पूछें।`,
-            `2. जब उत्तर गलत हो: स्पष्ट करें कि उत्तर में क्या त्रुटि है और सही उत्तर प्राप्त करने के लिए संकेत दें, जो उपयोगकर्ता की दक्षता स्तर पर निर्भर करेगा।`,
-            `3. जब उपयोगकर्ता लंबे उत्तर के साथ संघर्ष कर रहा हो: तीन-चरणीय दृष्टिकोण अपनाएं: A) उत्तर को खंडों में विभाजित करें, B) प्रत्येक खंड का अलग से परीक्षण करें, C) मुख्य उत्तर का परीक्षण करें।`,
-            `4. जब उत्तर सही हो: ${difficulty.label} मानकों के आधार पर मुख्य उत्तर के लिए उपयोगकर्ता को 1 से 10 के बीच स्कोर दें। स्कोर करते समय कड़ाई बरतें और आवश्यकतानुसार प्रतिक्रिया दें।`,
-            `5. स्कोर देने के बाद: अगला प्रश्न पूछें। प्रश्न पूछने के लिए कभी भी उपयोगकर्ता की पुष्टि न माँगें। अभ्यास सत्र समाप्त करने के लिए भी कभी नहीं पूछें।`,
-            `ये हैं वे नियम जिन्हें आपको पालन करना आवश्यक है:`,
-            `1. जब तक सही उत्तर न मिल जाए, वर्तमान प्रश्न पर ध्यान केंद्रित रखें। अनुवर्ती प्रश्न न पूछें।`,
-            `2. प्रत्येक इंटरैक्शन में केवल एक अवधारणा और एक उदाहरण प्रस्तुत करें। कोई अपवाद नहीं।`,
-            `3. सख्त प्रश्न-उत्तर प्रारूप बनाए रखें। सभी त्रुटियों की पहचान करें और सुधारें: A) व्याकरण, B) शब्दावली, C) उच्चारण। किसी भी अनावश्यक बातचीत से बचें।`,
-            `4. हमेशा निर्देशों और व्याख्याओं के लिए ${nativeLanguage.label} का उपयोग करें। ${nativeLanguage.label} और ${learnLanguage.label} दोनों में एक ही वाक्यों को दोहराएं नहीं।`,
-            `5. उत्तर में अपने व्यक्तिगत विचार शामिल न करें।`,
-            questions.length
-              ? `6. यहां उन प्रश्नों की सूची दी गई है जो आप पहले भी पूछ चुके हैं और जिन्हें आपको दोबारा नहीं पूछना चाहिए: ${JSON.stringify(
-                  questions
-                )}`
-              : ``,
-          ].join("\n"),
+          systemInstruction: getSystemPrompt(config),
           temperature: 0.6,
-          tools: [score_tool, next_question_tool],
           outputAudioTranscription: {},
           responseModalities: [Modality.AUDIO],
           speechConfig: {
             voiceConfig: {
               prebuiltVoiceConfig: {
-                voiceName: voice === "male" ? "Charon" : "Aoede",
+                voiceName: config.voice === "male" ? "Charon" : "Aoede",
               },
             },
-            languageCode: nativeLanguage.value,
+            languageCode: config.native_language,
           },
+          ...(config.disable_question === "yes"
+            ? {}
+            : { tools: [score_tool, next_question_tool] }),
         },
         callbacks: {
           onopen: () => console.log("Connection opened"),
@@ -306,14 +276,13 @@ export function useLiveApi(config: Omit<IUiConfig, "theme">) {
       stopSession();
     }
   }, [
-    promptData,
-    getQuestions,
+    config,
     setAiState,
     setupAudioStreamer,
     stopSession,
     handleSetupComplete,
-    handleToolCall,
     handleServerContent,
+    handleToolCall,
   ]);
 
   return {

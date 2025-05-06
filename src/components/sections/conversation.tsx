@@ -1,4 +1,8 @@
-import { useAiStateStore, usePracticeSessionsStore } from "@/lib/store";
+import {
+  useAiStateStore,
+  usePracticeSessionsStore,
+  useUiConfigStore,
+} from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { useLayoutEffect, useMemo, useRef } from "react";
 import {
@@ -32,6 +36,7 @@ import {
 import { DIFFICULTY } from "@/lib/data";
 
 export function Conversation() {
+  const disableQuestions = useUiConfigStore((s) => s.disable_question);
   const sessionId = useAiStateStore((s) => s.currentSession);
   const sessions = usePracticeSessionsStore((s) => s.sessions);
   const deleteQuestion = usePracticeSessionsStore((s) => s.deleteQuestion);
@@ -67,19 +72,21 @@ export function Conversation() {
 
   return (
     <div
-      className="h-full flex-1 overflow-y-scroll"
+      className="h-full flex-1 overflow-y-auto"
       ref={(ref) => {
         if (ref) questionContainerRef.current = ref;
       }}
     >
       <div className="p-2 sticky -top-[1px] bg-background shadow border-b flex justify-between items-center">
-        <TypographyH4 className="text-lg flex gap-2 items-baseline">
-          <span>Questions</span>
-          <span className="text-muted-foreground">
-            {questions.length || undefined}
-          </span>
-        </TypographyH4>
-        {!questions.length ? null : (
+        {disableQuestions === "yes" ? null : (
+          <TypographyH4 className="text-lg flex gap-2 items-baseline">
+            <span>Questions</span>
+            <span className="text-muted-foreground">
+              {questions.length || undefined}
+            </span>
+          </TypographyH4>
+        )}
+        {!questions.length || disableQuestions === "yes" ? null : (
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button
@@ -109,10 +116,14 @@ export function Conversation() {
           </AlertDialog>
         )}
       </div>
-      {!questions.length ? (
+      {!questions.length || disableQuestions === "yes" ? (
         <div className="flex flex-col gap-4 items-center select-none mt-[25%]">
-          <SearchXIcon className="size-24 text-primary" />
-          <TypographyH4>No questions found.</TypographyH4>
+          {disableQuestions === "yes" ? null : (
+            <>
+              <SearchXIcon className="size-24 text-primary" />
+              <TypographyH4>No questions found.</TypographyH4>
+            </>
+          )}
           <TypographyH4 className="flex gap-2 items-center">
             <span>Click on</span>
             <MicIcon className="size-7 text-primary-foreground border-primary bg-primary p-1 rounded-full" />
