@@ -3,6 +3,7 @@ import { ISettings } from "./types";
 export const LANGUAGES = [
   { value: "en-US", label: "English" },
   { value: "hi-IN", label: "Hindi" },
+  { value: "cmn-CN", label: "Mandarin" },
 ];
 
 export const THEMES = [

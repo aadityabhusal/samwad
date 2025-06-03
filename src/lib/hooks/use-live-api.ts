@@ -22,14 +22,13 @@ const score_tool: Tool = {
     {
       name: "give_score",
       description:
-        "Call this function when giving any kind of score or points to the user. उपयोगकर्ता को किसी भी प्रकार का स्कोर या अंक देते समय इस फ़ंक्शन को कॉल करें|",
+        "Call this function when giving any kind of score or points to the user.",
       parameters: {
         type: Type.OBJECT,
         properties: {
           score: {
             type: Type.NUMBER,
-            description:
-              "The score or points given to the user. उपयोगकर्ता को दिया गया स्कोर या अंक|",
+            description: "The score or points given to the user.",
           },
         },
         required: ["score"],
@@ -42,14 +41,13 @@ const next_question_tool = {
   functionDeclarations: [
     {
       name: "next_questions",
-      description:
-        "Call this function when the next question is asked. अगला प्रश्न पूछे जाने पर इस फ़ंक्शन को कॉल करें|",
+      description: "Call this function when the next question is asked.",
       parameters: {
         type: Type.OBJECT,
         properties: {
           next_question: {
             type: Type.STRING,
-            description: "The next question. अगला प्रश्न",
+            description: "The next question.",
           },
         },
         required: ["next_question"],
@@ -100,7 +98,7 @@ export function useLiveApi(config: Omit<IUiConfig, "theme">) {
       const pendingQuestion = getQuestions("pending")?.[0];
       if (pendingQuestion) {
         setAiState({ currentQuestion: pendingQuestion.id });
-        firstQn = `मैं यह प्रश्न पूछूंगा: ${pendingQuestion.text}`;
+        firstQn = `I will ask this question: ${pendingQuestion.text}`;
       }
 
       session.current?.sendClientContent({
@@ -108,7 +106,7 @@ export function useLiveApi(config: Omit<IUiConfig, "theme">) {
           ...(firstQn
             ? [{ role: "model", parts: [{ text: firstQn, thought: true }] }]
             : []),
-          { role: "user", parts: [{ text: "पहला प्रश्न पूछो" }] },
+          { role: "user", parts: [{ text: "Ask the first question" }] },
         ],
         turnComplete: true,
       });
