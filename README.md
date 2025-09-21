@@ -1,50 +1,90 @@
-# React + TypeScript + Vite
+# Samwad
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Learn languages through natural AI conversations**
 
-Currently, two official plugins are available:
+Samwad is an installable progressive web app that helps you practice speaking new languages through voice conversations with an AI tutor. Practice anytime, anywhere without fear of making mistakes or being judged.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Project Overview
 
-## Expanding the ESLint configuration
+This application leverages Google's Gemini Live API to create interactive language learning sessions where users can practice speaking with an AI instructor. The AI provides real-time feedback, scores your responses, and adapts to your proficiency level, making language learning more engaging and effective.
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+## Features
 
-- Configure the top-level `parserOptions` property like this:
+- **Voice-Based Learning** - Practice speaking through natural voice conversations
+- **AI Instructor** - Intelligent tutoring with personalized feedback and scoring
+- **Multi-Language Support** - Learn English, Hindi, or Mandarin
+- **Difficulty Levels** - Six proficiency levels from A1 (Beginner) to C2 (Advanced+)
+- **Session Management** - Save and review past practice sessions
+- **Adaptive Learning** - AI breaks down complex answers and provides targeted hints
+- **PWA Support** - Install as a mobile app with offline capabilities and wake lock functionality
+- **Dark Mode** - Beautiful UI with light/dark theme support
+- **Real-time Audio** - Live audio streaming with visual feedback
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+## Tech Stack
+
+### Frontend
+
+React, TypeScript, Vite, Tailwind CSS, Zustand, Shadcn/Radix
+
+### AI and Audio
+
+Google Gemini Live API, Web Audio API, Audio Worklets
+
+## Installation and Setup
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/aadityabhusal/samwad.git
+cd samwad
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+### 2. Install Dependencies
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
-
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
+```bash
+pnpm install
 ```
+
+### 3. Start Development Server
+
+```bash
+pnpm dev
+```
+
+### 5. Build for Production
+
+```bash
+pnpm build
+```
+
+## Usage
+
+1. **Enter API Key** - Get your Google Gemini API from [Google AI Studio](https://aistudio.google.com/apikey) and add it in the settings drawer panel
+2. **Set Up Your Profile** - Choose your native language, target language, and difficulty level
+3. **Start a Session** - Create a new practice session and start speaking with the AI tutor
+4. **Get Feedback** - Receive scores and improvement suggestions
+5. **Track Progress** - Review past sessions and monitor your improvement
+
+## Project Structure
+
+```
+src/
+├── components/        # Reusable UI components
+│   ├── sections/       # Page sections (header, conversation, etc.)
+│   └── ui/             # Base UI components
+├── lib/               # Core utilities and hooks
+│   ├── audio/          # Audio processing modules
+│   ├── hooks/          # Custom React hooks
+│   ├── types/          # Custom types
+│   ├── data/           # UI Data for the app
+│   ├── utils/          # Custom utilities
+│   └── store.ts        # State management
+├── index.css          # Main CSS file with themes and custom styles
+└── main.tsx           # Application entry point
+```
+
+## License
+
+This project is open source and available under the [MIT License](LICENSE).
+
+---
