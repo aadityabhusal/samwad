@@ -41,6 +41,8 @@ import dayjs from "dayjs";
 export function Header() {
   const { toggleTheme } = useTheme();
   const api_key = useUiConfigStore((s) => s.api_key);
+  const openSessionList = useUiConfigStore((s) => s.open_session_list);
+  const openSettings = useUiConfigStore((s) => s.open_settings);
   const setUiConfig = useUiConfigStore((s) => s.setUiConfig);
   const currentSession = useAiStateStore((s) => s.currentSession);
   const setAiState = useAiStateStore((s) => s.setAiState);
@@ -57,12 +59,17 @@ export function Header() {
 
   return (
     <header className="h-14 flex items-center justify-between border-b p-2">
-      <Drawer direction="left">
+      <Drawer
+        direction="left"
+        open={openSettings}
+        onClose={() => setUiConfig({ open_settings: false })}
+      >
         <DrawerTrigger asChild>
           <Button
             variant="ghost"
             size="icon"
             children={<SettingsIcon className="size-5" />}
+            onClick={() => setUiConfig({ open_settings: true })}
           />
         </DrawerTrigger>
         <DrawerContent>
@@ -80,20 +87,28 @@ export function Header() {
                 <span className="sr-only">Toggle theme</span>
               </Button>
             </label>
-            <p>API Key</p>
+            <p>Gemini API Key</p>
             <Input
               value={api_key}
               onChange={(e) => setUiConfig({ api_key: e.target.value })}
               type="password"
-              placeholder="Enter API key"
+              placeholder="Enter your Gemini API key"
             />
           </DrawerHeader>
         </DrawerContent>
       </Drawer>
       <Logo className="w-8 h-8" withText />
-      <Drawer direction="right">
+      <Drawer
+        direction="right"
+        open={openSessionList}
+        onClose={() => setUiConfig({ open_session_list: false })}
+      >
         <DrawerTrigger asChild>
-          <Button variant={"ghost"} size={"icon"}>
+          <Button
+            variant={"ghost"}
+            size={"icon"}
+            onClick={() => setUiConfig({ open_session_list: true })}
+          >
             <LibraryBigIcon className="size-5" />
           </Button>
         </DrawerTrigger>
@@ -110,7 +125,7 @@ export function Header() {
               <Button
                 size={"sm"}
                 className="ml-auto"
-                onClick={() => addSession("New Session", true)}
+                onClick={() => addSession("Practice Session", true)}
               >
                 <span>New</span>
                 <PlusIcon className="size-5" />
@@ -124,7 +139,7 @@ export function Header() {
                 <DrawerClose asChild>
                   <Button
                     className="w-fit"
-                    onClick={() => addSession("New Session", true)}
+                    onClick={() => addSession("Practice Session", true)}
                   >
                     <span>Create new session</span>
                     <PlusIcon className="size-5" />
@@ -144,7 +159,9 @@ export function Header() {
                     <div className="flex flex-col gap-1">
                       <span>{session.title}</span>
                       <span className="text-muted-foreground text-sm">
-                        {dayjs(session.createdAt).format("MMMM D YYYY, h:m A")}
+                        {dayjs(session.createdAt).format(
+                          "MMMM D YYYY, hh:mm A"
+                        )}
                       </span>
                     </div>
                     <DropdownMenu>

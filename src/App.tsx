@@ -11,7 +11,7 @@ import {
 import { TypographyH1 } from "@/components/ui/typography";
 import { LANGUAGES } from "@/lib/data";
 import { Conversation } from "@/components/sections/conversation";
-import { GoalIcon } from "lucide-react";
+import { LibraryBigIcon, PlusIcon } from "lucide-react";
 import { Toaster } from "@/components/ui/sonner";
 import { Button } from "@/components/ui/button";
 
@@ -19,7 +19,11 @@ function App() {
   const isConnected = useAiStateStore((s) => s.isConnected);
   const currentSession = useAiStateStore((s) => s.currentSession);
   const learnLanguage = useUiConfigStore((s) => s.learn_language);
+  const apiKey = useUiConfigStore((s) => s.api_key);
+  const sessions = usePracticeSessionsStore((s) => s.sessions);
   const addSession = usePracticeSessionsStore((s) => s.addSession);
+  const setUiConfig = useUiConfigStore((s) => s.setUiConfig);
+
   return (
     <ThemeProvider>
       <Header />
@@ -42,20 +46,48 @@ function App() {
                 <li>In your native language</li>
                 <li>Without fear of mistakes</li>
               </ul>
-              <Button
-                size={"lg"}
-                className="items-center"
-                onClick={() => addSession("New Session", true)}
-              >
-                <GoalIcon className="size-6" />
-                <span>Start a practice session</span>
-              </Button>
+              <div className="flex flex-col gap-4">
+                <Button
+                  size={"lg"}
+                  className="items-center"
+                  onClick={() => addSession("Practice Session", true)}
+                >
+                  <PlusIcon className="size-6" />
+                  <span>Create new session</span>
+                </Button>
+                {!sessions.length ? null : (
+                  <Button
+                    size={"lg"}
+                    variant={"secondary"}
+                    className="items-center"
+                    onClick={() => setUiConfig({ open_session_list: true })}
+                  >
+                    <LibraryBigIcon className="size-6" />
+                    <span>View past sessions</span>
+                  </Button>
+                )}
+              </div>
             </section>
           )}
         </main>
         {!currentSession ? null : (
           <div className="flex flex-col border-t p-3 gap-2">
-            {isConnected ? <AudioPulse /> : null}
+            {!apiKey ? (
+              <div className="flex gap-1 justify-center items-center">
+                <p className="text-destructive text-sm pb-px">
+                  Missing Gemini API key.
+                </p>
+                <Button
+                  variant={"link"}
+                  className="px-0 underline"
+                  onClick={() => setUiConfig({ open_settings: true })}
+                >
+                  Click here
+                </Button>
+              </div>
+            ) : isConnected ? (
+              <AudioPulse />
+            ) : null}
             <ActionBar />
           </div>
         )}

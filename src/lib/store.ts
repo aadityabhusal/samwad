@@ -16,10 +16,12 @@ export const useUiConfigStore = create(
       difficulty: "a1",
       playback_rate: "1.0",
       voice: "male",
-      native_language: "hi-IN",
+      native_language: "en-US",
       learn_language: "en-US",
       api_key: "",
       disable_question: "no",
+      open_session_list: false,
+      open_settings: false,
       setUiConfig: (change) =>
         set((state) => (typeof change === "function" ? change(state) : change)),
     }),

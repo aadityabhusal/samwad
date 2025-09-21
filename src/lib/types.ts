@@ -14,6 +14,8 @@ export type IUiConfig = {
   theme?: "light" | "dark";
   hideTranscription?: boolean;
   disable_question?: "yes" | "no";
+  open_session_list?: boolean;
+  open_settings?: boolean;
 };
 
 export type ISettings = {
